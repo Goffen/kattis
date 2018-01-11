@@ -1,11 +1,5 @@
-#include <stdio.h>
 #include <iostream>
-#include <algorithm>
-#include <vector>
 #include <math.h>
-#include <map>
-#include <set>
-#include <sstream>
 #include <cstring>
 using namespace std;
 
