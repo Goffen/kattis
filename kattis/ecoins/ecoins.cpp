@@ -6,6 +6,7 @@
 #include <map>
 #include <queue>
 #include <set>
+#include <stack>
 #include <sstream>
 #include <cstring>
 using namespace std;
@@ -14,6 +15,7 @@ typedef vector<int> vi;
 typedef pair<int, int> ii;
 typedef vector<ii> vii;
 typedef map<string, int> msi;
+typedef stack<ii> sii;
 
 #define REP(i, a, b) \
 	for (int i = int(a); i < int(b); i++)
@@ -23,19 +25,14 @@ typedef map<string, int> msi;
 	for (vii::iterator it = (c).begin(); it != (c).end(); it++)
 
 
-bool dfs(ii& newCoin, int toFind, vii& result, vii& coins, int depth) {
+bool dfs(ii& newCoin, int toFind, ii prevCoins, vii& coins, int depth) {
 	if(depth > 5) {
 		return false;
 	}
-	int convSum = 0, iSum = 0;
-	cout << "New coin: " << newCoin.first << ", " << newCoin.second << endl;
-	TRvii (result, v) { 
-		convSum += v->first;
-		iSum += v->second;
-		cout << convSum << ", " << iSum << endl;
-	}
+	int convSum = newCoin.first + prevCoins.first;
+   int iSum = newCoin.second + prevCoins.second;
 	int eMod = sqrt(pow(convSum, 2) + pow(iSum, 2));
-	cout << " = Emod: " << eMod << endl;
+   cout << "Sum coin: " << convSum << ", " << iSum << "= Emod " << eMod << endl;
 
 	if(toFind == eMod) {
 		cout << "OMG hittade den!";
@@ -43,9 +40,8 @@ bool dfs(ii& newCoin, int toFind, vii& result, vii& coins, int depth) {
 	}
 
 	for (int i = 0; i < coins.size(); ++i) {
-		result.push_back(coins[i]);
-		if(dfs(coins[i], toFind, result, coins, depth + 1)) {
-			
+		ii newPair = make_pair(convSum + coins[i].first, iSum + coins[i].second);
+		if(dfs(coins[i], toFind, newPair, coins, depth + 1)) {
 			return true;
 		}
 	}
@@ -79,8 +75,7 @@ int main(void) {
 	//}
 	int nrCoins = coins.size();
 	for (int j = 0; j < nrCoins; ++j) {
-		vii result;
-		dfs(coins[j], s, result, coins, 0);
+		dfs(coins[j], s, make_pair(0,0), coins, 0);
 	}
 	
 
