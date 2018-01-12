@@ -25,22 +25,51 @@ typedef map<string, int> msi;
 #define TRmsi(c, it) \
 	for (msi::iterator it = (c).begin(); it != (c).end(); it++)
 
-#define INF 2000000000 // 2 billion
-// If you need to recall how to use memset:
-#define MEMSET_INF 127 // about 2B
-#define MEMSET_HALF_INF 63 // about 1B
-//memset(dist, MEMSET_INF, sizeof dist); // useful to initialize shortest path distances
-//memset(dp_memo, -1, sizeof dp_memo); // useful to initialize DP memoization table
-//memset(arr, 0, sizeof arr); // useful to clear array of integers
-
-#define DFS_BLACK 1
-#define DFS_WHITE -1
-
 int main(void) {
-	int n;
-	cin >> n;
+	string password, message;
+	cin >> password >> message;
+
+	vector<char> foundChars;
+	int passwordExpectedOrder = 0;
+	REP (i, 0, message.size()) {
+		char c = message[i];
+		bool found = false;
+		bool foundPasswordOutOfOrder = false;
+		REP (j, 0, password.size()) {
+			char p = password[j];
+			bool hasAlreadyBeenFound = false;
+			REP (k, 0, foundChars.size()) {
+				if(p == foundChars[k]) {
+					hasAlreadyBeenFound = true;
+					break;
+				}
+			}
+			if(hasAlreadyBeenFound) {
+				continue;
+			}
+			if(c == p) {
+				if(j != passwordExpectedOrder) {
+					foundPasswordOutOfOrder = true;
+					break;
+				}
+				found = true;
+				foundChars.push_back(p);
+				passwordExpectedOrder++;
+				break;
+			}
+		}
+		if(foundPasswordOutOfOrder){
+			break;
+		}
+	}
+
+	if(passwordExpectedOrder != password.size()) {
+		cout << "FAIL";
+	}
+	else {
+		cout << "PASS";
+	}
 
 	cout << endl;
-
 	return 0;
 }
