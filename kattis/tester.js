@@ -18,13 +18,14 @@ function runProcess(input, output, indx) {
 	child1.on('close', function() {
 		console.log("-------- " + indx + " -------");
 		console.log(input.toString());
-		var windowsOutput = output.toString().replace(/\n/g, '\r\n');
+		//var windowsOutput = output.toString().replace(/\n/g, '\r\n');
 		console.log('- expected -')
-		console.log(windowsOutput);
+		console.log(output.toString());
 		console.log('- output -')
-		console.log(datas.join('\n'));
-		console.log("lengths= ans " + windowsOutput.length + " vs output " + datas.toString().length);
-		console.log("equals=" + (windowsOutput == datas.toString()));
+      var programOutput = datas.toString();
+		console.log(programOutput);
+		console.log("lengths= ans " + output.length + " vs output " + programOutput.length);
+		console.log("equals=" + (output == programOutput));
 
 	})
 	child1.stdin.end();
