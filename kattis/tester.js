@@ -22,7 +22,7 @@ function runProcess(input, output, indx) {
 		console.log('- expected -')
 		console.log(output.toString());
 		console.log('- output -')
-      var programOutput = datas.toString();
+      	var programOutput = datas.toString();
 		console.log(programOutput);
 		console.log("lengths= ans " + output.length + " vs output " + programOutput.length);
 		console.log("equals=" + (output == programOutput));
