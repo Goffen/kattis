@@ -12,8 +12,10 @@ using namespace std;
 typedef vector<int> vi;
 typedef pair<int, int> ii;
 typedef vector<ii> vii;
+typedef vector<vi> vvi;
 typedef map<ii, int> mii;
 
+#define INF 2000000000 // 2 billion
 #define PRIME_BRANCH_DEPTH 3
 #define TRvii(c, it) \
 	for (vii::iterator it = (c).begin(); it != (c).end(); it++)
@@ -42,22 +44,82 @@ void generatePytagoreanTriples(vii& coprimePairs, vector<vi>& pytagoreanTriples)
 		int a = pow(m, 2) - pow(n,2);
 		int b = 2*m*n;
 		int c = pow(m, 2) + pow(n,2);
+		vi tri;
+		tri.push_back(a);
+		tri.push_back(b);
+		tri.push_back(c);
 		//cout << m << "," << n << " : " << a << " " << b << " " << c << endl;
-		pytagoreanTriples.push_back({a,b,c});
+		pytagoreanTriples.push_back(tri);
 		counter++;
 	}
 }
 
-int gcd(int a, int b) { return (b == 0 ? a : gcd(b, a % b)); }
+int memo[300][300][40];
+int rMinCoins(vii& coins, int a, int b, int m) {
+	if(a < 0 || b < 0 || m < 0)  {
+		return INF;
+	}
+	if(memo[a][b][m] > -1) {
+		return memo[a][b][m];
+	}
+	int r = min(rMinCoins(coins, a, b, m - 1), rMinCoins(coins, a - coins[m].first, b - coins[m].second, m) + 1);
+	memo[a][b][m] = r;
+	//cout << "[" << a << "][" << b << "][" << m << "] = " << r << endl; 
+	return r;
+}
+
+vvi findPytagorianTriplesDivisibleOf(int s, vvi& pytagoreanTriples) {
+	vvi triplesForC;
+	TRvvi (pytagoreanTriples, triple) {
+		vi tripleP = *triple;
+		int c = tripleP[2];
+		if(s % c == 0) {
+			//cout << "Found a triangle! " << s << " is divisable of c " << c << ". " << s/c << ", " << endl;
+			triplesForC.push_back(tripleP);
+			vi inverseTriple;
+			inverseTriple.push_back(tripleP[1]);
+			inverseTriple.push_back(tripleP[0]);
+			inverseTriple.push_back(tripleP[2]);
+			triplesForC.push_back(inverseTriple);
+		}
+	}
+	return triplesForC;
+}
+
+void addZeroSolutionsIfNeeded(vii& coins, vvi& solutions, int s) {
+	bool hasZeroA = false;
+	bool hasZeroB = false;
+	TRvii (coins, c) {
+		if(c->first == 0) {
+			hasZeroA = true;
+		}
+		if(c->second == 0) {
+			hasZeroB = true;
+		}
+	}
+	if(hasZeroA == 0) {
+		vi zeroSolution;
+		zeroSolution.push_back(s);
+		zeroSolution.push_back(0);
+		zeroSolution.push_back(s);
+		solutions.push_back(zeroSolution);
+	}
+	if(hasZeroB == 0) {
+		vi zeroSolution;
+		zeroSolution.push_back(0);
+		zeroSolution.push_back(s);
+		zeroSolution.push_back(s);
+		solutions.push_back(zeroSolution);
+	}
+}
 
 int main(void) {
 	int n, m, s;
 	cin >> n;
-
 	vii coprimePairs;
 	generateCoprimePairs(make_pair(2,1), 0, coprimePairs);
 	sort(coprimePairs.begin(), coprimePairs.end());
-	vector<vi> pytagoreanTriples;
+	vvi pytagoreanTriples;
 	generatePytagoreanTriples(coprimePairs, pytagoreanTriples);
 	while(n--) {
 		cin >> m >> s;
@@ -68,99 +130,34 @@ int main(void) {
 			coins.push_back(make_pair(convVal, infoVal));
 		}
 		sort(coins.begin(), coins.end(),  std::greater<ii>());
-		//TRvii (coins, c) {
-		//	cout << c->first << "," << c->second << endl;
-		//}
-		vi closestTriangle;
-		int maxDivisions = 0;
-		TRvvi (pytagoreanTriples, triple) {
-			vi tripleP = *triple;
-			int c = tripleP[2];
-			if(s % c == 0) {
-				//cout << "Found a triangle! " << s << " is divisable of c " << c << ". " << s/c << " " << gcd(s,c) << endl;
-				if((s / c) > maxDivisions) {
-					maxDivisions = s / c;
-					closestTriangle = tripleP;
-				}
-			}
+		vvi matchingSolutions = findPytagorianTriplesDivisibleOf(s, pytagoreanTriples);
+		addZeroSolutionsIfNeeded(coins, matchingSolutions, s);
+		if(matchingSolutions.size() == 0) {
+			cout << "not possible" << endl;
+			continue;
 		}
-		int a = closestTriangle[0];
-		int b = closestTriangle[1];
+		int minMatchingLength = INF;
 
-		cout << "We are looking for a=" << a << " and b=" << b << endl;
-
-		queue<pair<ii, int> > q;
-		mii searched;
-
-		int gcdCoinA = a;
-		int gcdCoinB = b;
-		int gcdCoinA2 = b;
-		int gcdCoinB2 = a;
-		TRvii (coins, i) {
-			ii p = *i;
-			if(p.first > 1) {
-				gcdCoinA = gcd(gcdCoinA, p.first);
-				gcdCoinA2 = gcd(gcdCoinA2, p.first);
-			}
-			if(p.second > 1) {
-				gcdCoinB = gcd(gcdCoinB, p.second);
-				gcdCoinB2 = gcd(gcdCoinB2, p.second);
-			}
-			q.push(make_pair(*i, 1));
+		memset(memo, -1, sizeof(memo));
+		for (int i = 0; i < 40; ++i) {
+			memo[0][0][i] = 0;
 		}
 
-		cout << "gcdA: " << gcdCoinA << ", gcdA2: " << gcdCoinA2 << ", " << " gcdB:" << gcdCoinB << " gcdB2:" << gcdCoinB2; 
-
-		int foundAt = 0;
-		while(!q.empty()) {
-			pair<ii, int> queueItem = q.front();
-			ii coinsSoFar = queueItem.first;
-			int convSum = coinsSoFar.first;
-			int eSum = coinsSoFar.second;
-			int depth = queueItem.second;
-			q.pop();
-			//cout << "Popped: " << convSum << "," << coinsSoFar.second << " @ " << depth << endl;
-			if(searched.count(coinsSoFar) != 0) {
-				continue;
-			}
-			searched[coinsSoFar] = 1;
-			if(convSum == a && eSum == b || convSum == b && eSum == a) {
-				foundAt = depth;
-				break;
-			}
-			if((convSum < a || convSum < b) && (eSum < a || eSum < b)) {
-				TRvii(coins, i) {
-					q.push(make_pair(make_pair(convSum + i->first, eSum + i->second), depth + 1));
-				}
-			}
+		TRvvi (matchingSolutions, sol) {
+			int c = (*sol)[2];
+			int multiplyByFactor = s/c;
+	 		int a = (*sol)[0];
+			int b = (*sol)[1];
+			int startFactor;
+			int nrCoins = rMinCoins(coins, a*multiplyByFactor, b*multiplyByFactor, coins.size() - 1);
+			minMatchingLength = min(minMatchingLength, nrCoins);
 		}
-		cout << (foundAt == 0 ? "not possible" : to_string(foundAt)) << endl;
+		if(minMatchingLength == INF) {
+			cout << "not possible" << endl;
+		}
+		else {
+			cout << minMatchingLength << endl;
+		}
 	}
 	return 0;
 }
-
-/* 
-
-2
-2 5
-0 2
-2 0
-
-3 20
-0 2
-2 0
-2 1
-
-
-
-1
-3 200
-0 2
-2 0
-2 1
-
-3 299
-0 2
-2 0
-2 1
-*/
