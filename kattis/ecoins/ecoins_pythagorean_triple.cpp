@@ -59,11 +59,14 @@ int rMinCoins(vii& coins, int a, int b, int m) {
 	if(a < 0 || b < 0 || m < 0)  {
 		return INF;
 	}
-	if(memo[a][b][m] > -1) {
-		return memo[a][b][m];
+	if(a == 0 && b == 0) {
+		return 0;
 	}
+	//if(memo[a][b][m] > -1) {
+	//	return memo[a][b][m];
+	//}
 	int r = min(rMinCoins(coins, a, b, m - 1), rMinCoins(coins, a - coins[m].first, b - coins[m].second, m) + 1);
-	memo[a][b][m] = r;
+	//memo[a][b][m] = r;
 	//cout << "[" << a << "][" << b << "][" << m << "] = " << r << endl; 
 	return r;
 }
@@ -74,7 +77,7 @@ vvi findPytagorianTriplesDivisibleOf(int s, vvi& pytagoreanTriples) {
 		vi tripleP = *triple;
 		int c = tripleP[2];
 		if(s % c == 0) {
-			//cout << "Found a triangle! " << s << " is divisable of c " << c << ". " << s/c << ", " << endl;
+			cout << "Found a triangle! " << s << " is divisable of c " << c << ". " << s/c << ", " << endl;
 			triplesForC.push_back(tripleP);
 			vi inverseTriple;
 			inverseTriple.push_back(tripleP[1]);
@@ -97,14 +100,14 @@ void addZeroSolutionsIfNeeded(vii& coins, vvi& solutions, int s) {
 			hasZeroB = true;
 		}
 	}
-	if(hasZeroA == 0) {
+	if(hasZeroA) {
 		vi zeroSolution;
 		zeroSolution.push_back(s);
 		zeroSolution.push_back(0);
 		zeroSolution.push_back(s);
 		solutions.push_back(zeroSolution);
 	}
-	if(hasZeroB == 0) {
+	if(hasZeroB) {
 		vi zeroSolution;
 		zeroSolution.push_back(0);
 		zeroSolution.push_back(s);
@@ -137,18 +140,17 @@ int main(void) {
 			continue;
 		}
 		int minMatchingLength = INF;
-
-		memset(memo, -1, sizeof(memo));
-		for (int i = 0; i < 40; ++i) {
-			memo[0][0][i] = 0;
-		}
-
 		TRvvi (matchingSolutions, sol) {
+			memset(memo, -1, sizeof(memo));
+			for (int i = 0; i < 40; ++i) {
+				memo[0][0][i] = 0;
+			}
 			int c = (*sol)[2];
 			int multiplyByFactor = s/c;
 	 		int a = (*sol)[0];
 			int b = (*sol)[1];
 			int startFactor;
+			//cout << a << "," << b << endl;
 			int nrCoins = rMinCoins(coins, a*multiplyByFactor, b*multiplyByFactor, coins.size() - 1);
 			minMatchingLength = min(minMatchingLength, nrCoins);
 		}
