@@ -12,13 +12,13 @@ using namespace std;
 typedef long long ll;
 typedef vector<ll> vll;
 typedef vector<int> vi;
+#define INF 10000000
 #define SQRT10_15 31622777
 #define SQRT10_15_EXTRA 31722777
 
 #define REP(i, a, b) \
    for (int i = int(a); i < int(b); i++)
 
-/* Creates list of primes in [0..upperboud] */
 void sieve(vll& primes, ll upperbound) {
    bitset<SQRT10_15_EXTRA> bs;
    bs.reset(); 
@@ -54,79 +54,77 @@ vll primeFactors(ll n, vll& primes) {
    }
    return factors;
 }
-
-int addSum(int n) {
-   return ((n * (n+1)) / 2);
-}
-
-int dfsFactorize(ll n, ll sum, vi& multiples, int st, int depth) {
-   if(sum > n) { return -1;}
-   if(sum == n) { 
-      return depth;
-   }
-   int m = -1;
-   int maxMul = -1;
-   REP(i, st, multiples.size()) {
-      int r = dfsFactorize(n, sum * multiples[i], multiples, i + 1, depth + 1);
-      if(r != -1 && r > m) {
-      	maxMul = multiples[i];
+bool contains(vi& p, int f) {
+   REP(i, 0, p.size()) {
+      if(p[i] == f) {
+         return true;
       }
-      m = max(m, r);
    }
-   /*if(maxMul != -1) {
-   	cout << m << ", " << maxMul << endl;
-   }*/
-   return m;
+   return false;
 }
+
+vi distinctify(vll& a) {
+	vector<bool> used;
+	int aLength = a.size();
+	int unused = aLength;
+	REP(i, 0, aLength) { used.push_back(false);}
+	vi facts;
+	while(unused != 0) {
+		ll minFact = INF;
+		vi indxUsed;
+		REP(nrOfMuls, 1, aLength + 1) {
+			REP(j, 0, aLength - nrOfMuls) {
+				ll mul = 1;
+				int mulC = 0;
+				vi is;
+				for(int k=j; mulC < nrOfMuls; k++) {
+					if(k == aLength || mul > minFact) break;
+					if(used[k]) continue;
+					mul *= a[k];
+					is.push_back(k);
+					//cout << k << "," << j << "," << mulC << "," << mul << endl;
+					mulC++;
+				}
+				if(is.size() == nrOfMuls && mul < minFact && !contains(facts, mul)) {
+					minFact = mul;
+					indxUsed = is;
+				}
+			}
+		}
+		if(minFact == INF) {
+			vi indexOfUsed;
+			REP(i, 0, used.size()) {
+				if(!used[i]) {
+					facts[facts.size() - 1] *= a[i];
+				}
+			}
+			break;
+		}
+		else {
+			facts.push_back(minFact);
+			REP(i,0,indxUsed.size()) {
+				used[indxUsed[i]] = true;
+				unused--;
+			}
+		}
+	}
+	return facts;
+}
+
 /*
    Mål 1: 2^5 + 3^2 borde bli 2*3*6*8=4
    Mål 2: 2^40 borde bli 2*4*8*16*32*64*128*4096=8
  */
-int primeFactorsBfs(ll n) {
-   vi factors;
-   vi multiple;
-   REP(i,1,20) { multiple.push_back(pow(2, i));};
-   REP(i,1,10) { multiple.push_back(pow(3, i));};
-   REP(i,1,10) { multiple.push_back(pow(5, i));};
-   REP(i,1,10) { multiple.push_back(3*2*i);};
-   sort(multiple.begin(), multiple.end());
-   return dfsFactorize(n, 1, multiple, 0, 0);
-}
-
 int main(void) {
    ll x;
    cin >> x;
    vll primes;
    sieve(primes, round(sqrt(x)));
    vll factors = primeFactors(x, primes);
-   vll uniqueFactors;
-   map<ll, int> nrOfUniques;
-   REP(i,0, factors.size()) { 
-      int uniques = 1;
-      ll fact = factors[i];
-      REP(j, 0, factors.size()) {
-         if(i != j && fact == factors[j]) {
-            uniques++;
-         }
-      }
-      cout << fact << endl;
-      nrOfUniques[fact] = uniques;
-   }
-   //cout << "---- " << endl;
-   ll prodOfUniques = 1;
-   int notDuplicates = 0;
-   for(map<ll,int>::iterator it = nrOfUniques.begin(); it != nrOfUniques.end(); it++) {
-      ll fact = it->first;
-      int uniques = it->second;
-      if(uniques > 1) {
-         prodOfUniques *= pow(fact, uniques);
-      }
-      else {
-         notDuplicates++;
-      }
-   }
-   int duplicateFactorized = primeFactorsBfs(prodOfUniques);
-   cout << (duplicateFactorized + notDuplicates) << endl;
-
+   //REP(i,0,factors.size()) { cout << factors[i] << endl;}
+   //cout << "---" << endl;
+   vi facts = distinctify(factors);
+   //REP(i,0,facts.size()) { cout << facts[i] << endl;}
+   cout << facts.size() << endl;
    return 0;
 }
